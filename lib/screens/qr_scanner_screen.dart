@@ -24,13 +24,13 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             controller: _controller,
             onDetect: (BarcodeCapture barcodeCapture) {
               if (!_isDetecting) {
-                _isDetecting = true; // Mencegah deteksi ulang
+                _isDetecting = true;
                 final barcode = barcodeCapture.barcodes.isNotEmpty
                     ? barcodeCapture.barcodes.first
                     : null;
                 if (barcode?.rawValue != null) {
                   Navigator.pop(context,
-                      barcode!.rawValue); // Kembali ke Home dengan hasil scan
+                      barcode!.rawValue);
                 } else {
                   _showErrorDialog('QR Code tidak valid.');
                 }
@@ -53,7 +53,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           actions: [
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Tutup dialog
+                Navigator.pop(context);
               },
               child: const Text('OK'),
             ),
