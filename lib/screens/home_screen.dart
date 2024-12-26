@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'qr_scanner_screen.dart'; // Import file QRScannerScreen
+import 'qr_scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,13 +15,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QR Scanner By Yudan'),
+        title: const Text(''),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (_scanResult != null) // Tampilkan hasil scan jika ada
+            if (_scanResult != null)
               Text(
                 'Hasil Scan: $_scanResult',
                 style:
@@ -36,7 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                // Navigasi ke QRScannerScreen dan tunggu hasil scan
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -44,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
                 if (result != null && result is String) {
                   setState(() {
-                    _scanResult = result; // Perbarui hasil scan
+                    _scanResult = result;
                   });
                 }
               },
