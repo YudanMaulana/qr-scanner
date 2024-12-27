@@ -40,6 +40,7 @@ dependencies:
   mobile_scanner: ^6.0.2
   another_flutter_splash_screen: ^1.2.1
   animated_text_kit: ^4.2.2
+  http: ^1.2.2
 
 
 

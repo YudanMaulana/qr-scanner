@@ -17,13 +17,6 @@ class SplashScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(height: 250),
-                  // Gambar menggantikan teks 'KMIE'
-                  Image.asset(
-                    'lib/assets/icon.png', // Path gambar Anda
-                    height: 250,
-                    width: 250, // Sesuaikan ukuran
-                  ),
-                  SizedBox(height: 10),
                   SizedBox(
                     child: DefaultTextStyle(
                       style: const TextStyle(
@@ -35,8 +28,8 @@ class SplashScreen extends StatelessWidget {
                         animatedTexts: [
                           TypewriterAnimatedText(
                               speed: Duration(milliseconds: 120),
-                              ' You& Scanner',
-                              textStyle: TextStyle(fontSize: 28)),
+                              ' Y Scanner',
+                              textStyle: TextStyle(fontSize: 25)),
                         ],
                         isRepeatingAnimation: false,
                         onTap: () {
@@ -45,15 +38,20 @@ class SplashScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  Image.asset(
+                    'lib/assets/icon.png',
+                    height: 250,
+                    width: 250,
+                  ),
+                  SizedBox(height: 5),
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.only(
-                    bottom: 30.0), // Jarak dari bawah layar
+                padding: const EdgeInsets.only(bottom: 30.0),
                 child: Text(
                   'by yudan maulana',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 10,
                     color: Colors.grey,
                   ),
                 ),
@@ -64,16 +62,6 @@ class SplashScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         nextScreen: HomeScreen(),
       ),
-    );
-  }
-}
-
-class NextScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Home')),
-      body: Center(child: Text('Welcome to the Home Screen')),
     );
   }
 }
