@@ -8,7 +8,7 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FlutterSplashScreen.fadeIn(
-        duration: Duration(milliseconds: 3200),
+        duration: Duration(milliseconds: 3300),
         childWidget: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -28,8 +28,8 @@ class SplashScreen extends StatelessWidget {
                         animatedTexts: [
                           TypewriterAnimatedText(
                               speed: Duration(milliseconds: 120),
-                              ' Y Scanner',
-                              textStyle: TextStyle(fontSize: 25)),
+                              'scan and save everywhere',
+                              textStyle: TextStyle(fontSize: 20)),
                         ],
                         isRepeatingAnimation: false,
                         onTap: () {

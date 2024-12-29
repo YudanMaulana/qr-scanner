@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import untuk Clipboard
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'qr_scanner_screen.dart';
 import 'search_page.dart';
 import 'api_service.dart';
@@ -16,12 +18,34 @@ class _HomeScreenState extends State<HomeScreen> {
   String _status = '';
   String _scanResult = '';
 
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedData = prefs.getString('savedData');
+    if (savedData != null) {
+      setState(() {
+        _apiData = jsonDecode(savedData);
+      });
+    }
+  }
+
+  Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('savedData', jsonEncode(_apiData));
+  }
+
   Future<void> _fetchData() async {
     try {
       final data = await ApiService.fetchData();
       setState(() {
         _apiData = data;
       });
+      await _saveData(); // Simpan data yang diambil
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data berhasil diperbarui!')),
       );
@@ -41,16 +65,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text)); // Salin teks ke clipboard
+    Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Hasil scan disalin ke clipboard!')),
     );
   }
 
-  void _addToSearchPage() {
+  void _addToSearchPage() async {
     setState(() {
-      _apiData.insert(0, {'name': _scanResult}); // Tambahkan ke awal
+      _apiData.insert(0, {'name': _scanResult});
     });
+    await _saveData(); // Simpan data setelah menambahkan item baru
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Data berhasil ditambahkan ke daftar!')),
     );
@@ -60,13 +85,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(''),
+        title: const Text('Home'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Hasil Scan
             if (_status.isNotEmpty)
               Column(
                 children: [
@@ -79,34 +103,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 70),
+                  const SizedBox(height: 20),
                   if (_scanResult.isNotEmpty)
                     GestureDetector(
                       onTap: () => _copyToClipboard(_scanResult),
                       child: Text(
                         '$_scanResult',
                         style: const TextStyle(
-                            fontSize: 17,
-                            color:
-                                Color.fromARGB(255, 88, 88, 88) // Garis bawah
-                            ),
+                          fontSize: 17,
+                          color: Color.fromARGB(255, 88, 88, 88),
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
                   const SizedBox(height: 10),
-
-                  // Label "+"
-                  GestureDetector(
-                    onTap: _addToSearchPage,
-                    child: const Text(
-                      'tambahkan ?',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
+                  if (_status == 'Tidak Terdaftar')
+                    GestureDetector(
+                      onTap: _addToSearchPage,
+                      child: const Text(
+                        'Tambahkan?',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               )
             else
@@ -115,10 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(fontSize: 20, color: Colors.deepPurple),
               ),
             const SizedBox(height: 70),
-
-            // Dua tombol di bawah (berjajar ke samping)
             Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
                   onPressed: () async {
@@ -159,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ],

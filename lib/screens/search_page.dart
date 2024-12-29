@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class SearchPage extends StatefulWidget {
   final List<dynamic> data;
@@ -16,7 +18,29 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    _filteredData = widget.data; // Set data awal
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedData = prefs.getString('savedData');
+    debugPrint('Loaded data: $savedData'); // Debug log
+    setState(() {
+      if (savedData != null) {
+        widget.data.clear();
+        widget.data.addAll(jsonDecode(savedData));
+        _filteredData = widget.data;
+      } else {
+        _filteredData = widget.data;
+      }
+    });
+  }
+
+  Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedString = jsonEncode(widget.data);
+    await prefs.setString('savedData', savedString);
+    debugPrint('Saved data: $savedString'); // Debug log
   }
 
   void _filterData(String query) {
@@ -37,8 +61,21 @@ class _SearchPageState extends State<SearchPage> {
               item['name'].toLowerCase().contains(_searchQuery.toLowerCase()))
           .toList();
     });
+    _saveData(); // Simpan perubahan setelah penghapusan
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Data berhasil dihapus!')),
+    );
+  }
+
+  void _resetData() async {
+    setState(() {
+      widget.data.clear();
+      _filteredData.clear();
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('savedData'); // Hapus data dari SharedPreferences
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Semua data berhasil dihapus!')),
     );
   }
 
@@ -47,6 +84,13 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cari Data'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _resetData,
+            tooltip: 'Reset Data',
+          )
+        ],
       ),
       body: Column(
         children: [
