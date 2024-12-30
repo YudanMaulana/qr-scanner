@@ -24,7 +24,7 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     final String? savedData = prefs.getString('savedData');
-    debugPrint('Loaded data: $savedData'); // Debug log
+    debugPrint('Loaded data: $savedData'); // Debug log buat memastikan ke save
     setState(() {
       if (savedData != null) {
         widget.data.clear();
@@ -40,7 +40,7 @@ class _SearchPageState extends State<SearchPage> {
     final prefs = await SharedPreferences.getInstance();
     final savedString = jsonEncode(widget.data);
     await prefs.setString('savedData', savedString);
-    debugPrint('Saved data: $savedString'); // Debug log
+    debugPrint('Saved data: $savedString');
   }
 
   void _filterData(String query) {
@@ -73,7 +73,7 @@ class _SearchPageState extends State<SearchPage> {
       _filteredData.clear();
     });
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('savedData'); // Hapus data dari SharedPreferences
+    await prefs.remove('savedData'); // buat Hapus data dari SharedPreferences
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Semua data berhasil dihapus!')),
     );
@@ -112,7 +112,10 @@ class _SearchPageState extends State<SearchPage> {
               itemBuilder: (context, index) {
                 final item = _filteredData[index];
                 return ListTile(
-                  title: Text(item['name']),
+                  title: Text(
+                    item['name'],
+                    style: TextStyle(fontSize: 14),
+                  ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => _deleteItem(index),

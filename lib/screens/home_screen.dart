@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'qr_scanner_screen.dart';
 import 'search_page.dart';
@@ -45,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _apiData = data;
       });
-      await _saveData(); // Simpan data yang diambil
+      await _saveData();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data berhasil diperbarui!')),
       );
@@ -64,6 +65,17 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _openLink(String url) async {
+    // Cek apakah URL dapat dibuka
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tidak dapat membuka tautan!')),
+      );
+    }
+  }
+
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -75,10 +87,18 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _apiData.insert(0, {'name': _scanResult});
     });
-    await _saveData(); // Simpan data setelah menambahkan item baru
+    await _saveData();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Data berhasil ditambahkan ke daftar!')),
     );
+  }
+
+  bool _isLink(String text) {
+    // Pola regex sederhana untuk mendeteksi URL ny
+    final urlRegex = RegExp(
+      r'^(https?:\/\/)?([a-zA-Z0-9.-]+)(:[0-9]+)?(\/[^\s]*)?$',
+    );
+    return urlRegex.hasMatch(text);
   }
 
   @override
@@ -106,12 +126,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 20),
                   if (_scanResult.isNotEmpty)
                     GestureDetector(
-                      onTap: () => _copyToClipboard(_scanResult),
+                      onTap: () {
+                        if (_isLink(_scanResult)) {
+                          _openLink(_scanResult);
+                        } else {
+                          _copyToClipboard(_scanResult);
+                        }
+                      },
                       child: Text(
-                        '$_scanResult',
-                        style: const TextStyle(
+                        _scanResult,
+                        style: TextStyle(
                           fontSize: 17,
-                          color: Color.fromARGB(255, 88, 88, 88),
+                          color:
+                              _isLink(_scanResult) ? Colors.blue : Colors.black,
+                          decoration: _isLink(_scanResult)
+                              ? TextDecoration.underline
+                              : null,
                         ),
                         textAlign: TextAlign.center,
                       ),
