@@ -8,16 +8,45 @@ class QRScannerScreen extends StatefulWidget {
   State<QRScannerScreen> createState() => _QRScannerScreenState();
 }
 
-class _QRScannerScreenState extends State<QRScannerScreen> {
+class _QRScannerScreenState extends State<QRScannerScreen>
+    with SingleTickerProviderStateMixin {
   final MobileScannerController _controller = MobileScannerController();
-  bool _isDetecting = false; // Untuk mencegah multiple hasil scan
+  bool _isDetecting = false;
+
+  late AnimationController _animationController;
+  late Animation<double> _lineAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi animasi
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _lineAnimation =
+        Tween<double>(begin: 0, end: 1).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Silahkan Scan'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+        title: const Text(
+          'Silahkan Scan',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
+      backgroundColor: const Color.fromARGB(255, 24, 23, 28),
       body: Stack(
         children: [
           MobileScanner(
@@ -29,14 +58,30 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     ? barcodeCapture.barcodes.first
                     : null;
                 if (barcode?.rawValue != null) {
-                  Navigator.pop(context,
-                      barcode!.rawValue);
+                  Navigator.pop(context, barcode!.rawValue);
                 } else {
                   _showErrorDialog('QR Code tidak valid.');
                 }
               }
             },
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
+          ),
+          // Animasi garis scan
+          AnimatedBuilder(
+            animation: _lineAnimation,
+            builder: (context, child) {
+              return Positioned(
+                top: MediaQuery.of(context).size.height *
+                    0.9 *
+                    _lineAnimation.value,
+                left: 20,
+                right: 20,
+                child: Container(
+                  height: 3,
+                  color: Colors.redAccent,
+                ),
+              );
+            },
           ),
         ],
       ),

@@ -83,7 +83,12 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cari Data'),
+        backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Cari Data',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -92,6 +97,7 @@ class _SearchPageState extends State<SearchPage> {
           )
         ],
       ),
+      backgroundColor: Colors.black,
       body: Column(
         children: [
           // Form pencarian
@@ -99,13 +105,23 @@ class _SearchPageState extends State<SearchPage> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               onChanged: _filterData,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              cursorColor: Colors.white,
+              decoration: InputDecoration(
                 labelText: 'Cari Data',
-                border: OutlineInputBorder(),
+                labelStyle: const TextStyle(color: Colors.white12),
+                floatingLabelStyle: const TextStyle(color: Colors.white),
+                enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white12),
+                    borderRadius: BorderRadius.circular(8)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(color: Colors.white, width: 2.0),
+                    borderRadius: BorderRadius.circular(8)),
               ),
             ),
           ),
-          // Daftar data dengan ikon hapus
+
           Expanded(
             child: ListView.builder(
               itemCount: _filteredData.length,
@@ -114,7 +130,7 @@ class _SearchPageState extends State<SearchPage> {
                 return ListTile(
                   title: Text(
                     item['name'],
-                    style: TextStyle(fontSize: 14),
+                    style: TextStyle(color: Colors.white, fontSize: 14),
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),

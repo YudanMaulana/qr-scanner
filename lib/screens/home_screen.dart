@@ -66,9 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openLink(String url) async {
-    // Cek apakah URL dapat dibuka
     if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      try {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } on Exception catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka tautan: $e')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tidak dapat membuka tautan!')),
@@ -94,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool _isLink(String text) {
-    // Pola regex sederhana untuk mendeteksi URL ny
     final urlRegex = RegExp(
       r'^(https?:\/\/)?([a-zA-Z0-9.-]+)(:[0-9]+)?(\/[^\s]*)?$',
     );
@@ -105,8 +109,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+        title: const Text(
+          'Home',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
+      backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -119,7 +128,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
-                      color: _status == 'Terdaftar' ? Colors.blue : Colors.red,
+                      color: _status == 'Terdaftar'
+                          ? Colors.lightGreen
+                          : Colors.redAccent,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -139,9 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontSize: 17,
                           color:
                               _isLink(_scanResult) ? Colors.blue : Colors.black,
-                          decoration: _isLink(_scanResult)
-                              ? TextDecoration.underline
-                              : null,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -155,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: Colors.red,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -164,12 +172,20 @@ class _HomeScreenState extends State<HomeScreen> {
             else
               const Text(
                 'Belum ada hasil scan.',
-                style: TextStyle(fontSize: 20, color: Colors.deepPurple),
+                style: TextStyle(fontSize: 20, color: Colors.white70),
               ),
             const SizedBox(height: 70),
             Column(
               children: [
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   onPressed: () async {
                     final result = await Navigator.push(
                       context,
@@ -189,6 +205,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 39, 38, 43),
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                         onPressed: _fetchData,
                         child: const Text('Dapatkan Data'),
                       ),
@@ -196,6 +221,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 39, 38, 43),
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
