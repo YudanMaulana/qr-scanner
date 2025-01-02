@@ -81,28 +81,71 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Hasil scan disalin ke clipboard!')),
-    );
-  }
-
-  void _addToSearchPage() async {
-    setState(() {
-      _apiData.insert(0, {'name': _scanResult});
-    });
-    await _saveData();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Data berhasil ditambahkan ke daftar!')),
-    );
-  }
-
   bool _isLink(String text) {
     final urlRegex = RegExp(
       r'^(https?:\/\/)?([a-zA-Z0-9.-]+)(:[0-9]+)?(\/[^\s]*)?$',
     );
     return urlRegex.hasMatch(text);
+  }
+
+  void _addToSearchPageWithId() async {
+    final idController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Masukkan identitas',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Color.fromARGB(255, 39, 38, 43),
+          content: TextField(
+            style: TextStyle(color: Colors.white),
+            controller: idController,
+            cursorColor: Colors.white,
+            keyboardType: TextInputType.text,
+            decoration: InputDecoration(
+              labelText: 'identitas',
+              border: OutlineInputBorder(),
+              floatingLabelStyle: const TextStyle(color: Colors.white),
+              enabledBorder: OutlineInputBorder(
+                  borderSide:
+                      const BorderSide(color: Color.fromARGB(255, 88, 88, 88)),
+                  borderRadius: BorderRadius.circular(8)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Batal', style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () {
+                final id = idController.text.trim();
+                if (id.isNotEmpty) {
+                  setState(() {
+                    _apiData.insert(0, {'id': id, 'name': _scanResult});
+                  });
+                  _saveData();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Data berhasil ditambahkan!')),
+                  );
+                }
+                Navigator.pop(context);
+              },
+              child:
+                  const Text('Simpan', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -116,66 +159,76 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_status.isNotEmpty)
-              Column(
-                children: [
-                  Text(
-                    _status,
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: _status == 'Terdaftar'
-                          ? Colors.lightGreen
-                          : Colors.redAccent,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  if (_scanResult.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        if (_isLink(_scanResult)) {
-                          _openLink(_scanResult);
-                        } else {
-                          _copyToClipboard(_scanResult);
-                        }
-                      },
-                      child: Text(
-                        _scanResult,
+      body: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween, // Menjaga tombol di bawah
+        children: [
+          // Bagian atas konten
+          const SizedBox(height: 10),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_status.isNotEmpty)
+                  Column(
+                    children: [
+                      Text(
+                        _status,
                         style: TextStyle(
-                          fontSize: 17,
-                          color:
-                              _isLink(_scanResult) ? Colors.blue : Colors.black,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: _status == 'Terdaftar'
+                              ? Colors.lightGreen
+                              : Colors.redAccent,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                    ),
-                  const SizedBox(height: 10),
-                  if (_status == 'Tidak Terdaftar')
-                    GestureDetector(
-                      onTap: _addToSearchPage,
-                      child: const Text(
-                        'Tambahkan?',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      const SizedBox(height: 20),
+                      if (_scanResult.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            if (_isLink(_scanResult)) {
+                              _openLink(_scanResult);
+                            }
+                          },
+                          child: Text(
+                            _scanResult,
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: _isLink(_scanResult)
+                                  ? Colors.blue
+                                  : Colors.black,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                      ),
-                    ),
-                ],
-              )
-            else
-              const Text(
-                'Belum ada hasil scan.',
-                style: TextStyle(fontSize: 20, color: Colors.white70),
-              ),
-            const SizedBox(height: 70),
-            Column(
+                      const SizedBox(height: 10),
+                      if (_status == 'Tidak Terdaftar')
+                        GestureDetector(
+                          onTap: _addToSearchPageWithId,
+                          child: const Text(
+                            'Tambahkan?',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  )
+                else
+                  const Text(
+                    'Belum ada hasil scan.',
+                    style: TextStyle(fontSize: 20, color: Colors.white70),
+                  ),
+              ],
+            ),
+          ),
+          // Tombol di bagian bawah
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: Column(
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -245,8 +298,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

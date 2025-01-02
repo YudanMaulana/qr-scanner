@@ -47,8 +47,8 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _searchQuery = query;
       _filteredData = widget.data
-          .where((item) =>
-              item['name'].toLowerCase().contains(query.toLowerCase()))
+          .where(
+              (item) => item['id'].toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -109,10 +109,12 @@ class _SearchPageState extends State<SearchPage> {
               cursorColor: Colors.white,
               decoration: InputDecoration(
                 labelText: 'Cari Data',
-                labelStyle: const TextStyle(color: Colors.white12),
+                labelStyle:
+                    const TextStyle(color: Color.fromARGB(255, 88, 88, 88)),
                 floatingLabelStyle: const TextStyle(color: Colors.white),
                 enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white12),
+                    borderSide: const BorderSide(
+                        color: Color.fromARGB(255, 88, 88, 88)),
                     borderRadius: BorderRadius.circular(8)),
                 focusedBorder: OutlineInputBorder(
                     borderSide:
@@ -127,14 +129,45 @@ class _SearchPageState extends State<SearchPage> {
               itemCount: _filteredData.length,
               itemBuilder: (context, index) {
                 final item = _filteredData[index];
-                return ListTile(
-                  title: Text(
-                    item['name'],
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _deleteItem(index),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 16.0),
+                  child: Card(
+                    color: const Color.fromARGB(255, 39, 38, 43),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${item['id']}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            item['name'],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteItem(index),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
