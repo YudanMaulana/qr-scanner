@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<dynamic> _apiData = [];
   String _status = '';
   String _scanResult = '';
@@ -151,11 +152,89 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: const Color.fromARGB(255, 39, 38, 43),
         title: const Text(
           'Home',
           style: TextStyle(color: Colors.white),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              _scaffoldKey.currentState?.openEndDrawer();
+            },
+          ),
+        ],
+      ),
+      endDrawer: Drawer(
+        backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            SizedBox(
+              height: 100,
+              child: DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(255, 50, 50, 60),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Pengaturan',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.arrow_right, color: Colors.white),
+              title: const Text('Versi Aplikasi',
+                  style: TextStyle(color: Colors.white)),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: Color.fromARGB(255, 50, 50, 60),
+                      title: const Text('Versi Aplikasi',
+                          style: TextStyle(color: Colors.white)),
+                      content: Container(
+                        width: 180,
+                        height: 90,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Versi saat ini: 0.11',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const Text(
+                              'diperbarui tanggal : 03-01-2025',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('OK',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
         ),
       ),
       backgroundColor: Colors.black,

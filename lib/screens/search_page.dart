@@ -48,7 +48,7 @@ class _SearchPageState extends State<SearchPage> {
       _searchQuery = query;
       _filteredData = widget.data
           .where(
-              (item) => item['id'].toLowerCase().contains(query.toLowerCase()))
+              (item) => item['id '].toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
