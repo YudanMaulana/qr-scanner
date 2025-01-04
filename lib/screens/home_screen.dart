@@ -193,6 +193,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.arrow_right, color: Colors.white),
+              title: const Text('Tambahkan manual JSON',
+                  style: TextStyle(color: Colors.white)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.arrow_right, color: Colors.white),
               title: const Text('Versi Aplikasi',
                   style: TextStyle(color: Colors.white)),
               onTap: () {
@@ -233,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 );
               },
-            ),
+            )
           ],
         ),
       ),
