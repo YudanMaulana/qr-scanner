@@ -89,6 +89,71 @@ class _HomeScreenState extends State<HomeScreen> {
     return urlRegex.hasMatch(text);
   }
 
+  Future<void> _setApiUrl(BuildContext context) async {
+    final urlController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Tambahkan URL JSON',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+          content: TextField(
+            controller: urlController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Masukkan URL JSON',
+              hintStyle: const TextStyle(color: Colors.white70),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.white70),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.white, width: 2.0),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Batal', style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final url = urlController.text.trim();
+
+                if (url.isNotEmpty) {
+                  try {
+                    // Set URL di ApiService dan simpan ke SharedPreferences
+                    await ApiService.setApiUrl(url);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('URL berhasil disimpan!')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gagal menyimpan URL: $e')),
+                    );
+                  }
+                }
+
+                Navigator.pop(context);
+              },
+              child: const Text('Tambahkan',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _addToSearchPageWithId() async {
     final idController = TextEditingController();
 
@@ -174,71 +239,42 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            SizedBox(
-              height: 100,
-              child: DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 50, 50, 60),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Pengaturan',
-                      style: TextStyle(color: Colors.white, fontSize: 24),
-                    ),
-                  ],
-                ),
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 50, 50, 60),
+              ),
+              child: Text(
+                'Pengaturan',
+                style: TextStyle(color: Colors.white, fontSize: 24),
               ),
             ),
             ListTile(
               leading: const Icon(Icons.arrow_right, color: Colors.white),
               title: const Text('Tambahkan manual JSON',
                   style: TextStyle(color: Colors.white)),
+              onTap: () => _setApiUrl(context),
             ),
             ListTile(
-              leading: const Icon(Icons.arrow_right, color: Colors.white),
+              leading: const Icon(Icons.info, color: Colors.white),
               title: const Text('Versi Aplikasi',
                   style: TextStyle(color: Colors.white)),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AlertDialog(
+                    return const AlertDialog(
                       backgroundColor: Color.fromARGB(255, 50, 50, 60),
-                      title: const Text('Versi Aplikasi',
+                      title: Text('Versi Aplikasi',
                           style: TextStyle(color: Colors.white)),
-                      content: Container(
-                        width: 180,
-                        height: 90,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Versi saat ini: 0.11',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            const Text(
-                              'diperbarui tanggal : 03-01-2025',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
+                      content: Text(
+                        'Versi saat ini: 1.0.0',
+                        style: TextStyle(color: Colors.white),
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('OK',
-                              style: TextStyle(color: Colors.white)),
-                        ),
-                      ],
                     );
                   },
                 );
               },
-            )
+            ),
           ],
         ),
       ),
