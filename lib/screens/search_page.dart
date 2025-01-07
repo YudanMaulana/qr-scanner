@@ -46,10 +46,10 @@ class _SearchPageState extends State<SearchPage> {
   void _filterData(String query) {
     setState(() {
       _searchQuery = query;
-      _filteredData = widget.data
-          .where(
-              (item) => item['id '].toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      _filteredData = widget.data.where((item) {
+        return item.entries.any((entry) =>
+            entry.value.toString().toLowerCase().contains(query.toLowerCase()));
+      }).toList();
     });
   }
 
@@ -142,22 +142,19 @@ class _SearchPageState extends State<SearchPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '${item['id']}',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            item['name'],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          // Iterasi key-value
+                          ...item.entries.map((entry) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 5.0),
+                              child: Text(
+                                '${entry.key}: ${entry.value}',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                           Align(
                             alignment: Alignment.centerRight,
                             child: IconButton(

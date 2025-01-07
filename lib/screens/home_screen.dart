@@ -59,7 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _checkScanResult(String result) {
-    final isRegistered = _apiData.any((item) => item['name'] == result);
+    final isRegistered = _apiData.any((item) {
+      return item.entries.any((entry) => entry.value.toString() == result);
+    });
+
     setState(() {
       _status = isRegistered ? 'Terdaftar' : 'Tidak Terdaftar';
       _scanResult = result;
@@ -155,34 +158,57 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _addToSearchPageWithId() async {
-    final idController = TextEditingController();
+    final keyController = TextEditingController();
+    final valueController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-            'Masukkan identitas',
+            'Tambahkan Data',
             style: TextStyle(color: Colors.white),
           ),
-          backgroundColor: Color.fromARGB(255, 39, 38, 43),
-          content: TextField(
-            style: TextStyle(color: Colors.white),
-            controller: idController,
-            cursorColor: Colors.white,
-            keyboardType: TextInputType.text,
-            decoration: InputDecoration(
-              labelText: 'identitas',
-              border: OutlineInputBorder(),
-              floatingLabelStyle: const TextStyle(color: Colors.white),
-              enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      const BorderSide(color: Color.fromARGB(255, 88, 88, 88)),
-                  borderRadius: BorderRadius.circular(8)),
-              focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.white, width: 2.0),
-                  borderRadius: BorderRadius.circular(8)),
-            ),
+          backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: keyController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Key',
+                  border: const OutlineInputBorder(),
+                  floatingLabelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          color: Color.fromARGB(255, 88, 88, 88)),
+                      borderRadius: BorderRadius.circular(8)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          const BorderSide(color: Colors.white, width: 2.0),
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: valueController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Value',
+                  border: const OutlineInputBorder(),
+                  floatingLabelStyle: const TextStyle(color: Colors.white),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          color: Color.fromARGB(255, 88, 88, 88)),
+                      borderRadius: BorderRadius.circular(8)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          const BorderSide(color: Colors.white, width: 2.0),
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -193,10 +219,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                final id = idController.text.trim();
-                if (id.isNotEmpty) {
+                final key = keyController.text.trim();
+                final value = valueController.text.trim();
+                if (key.isNotEmpty && value.isNotEmpty) {
                   setState(() {
-                    _apiData.insert(0, {'id': id, 'name': _scanResult});
+                    _apiData.insert(0, {key: value});
                   });
                   _saveData();
                   ScaffoldMessenger.of(context).showSnackBar(
