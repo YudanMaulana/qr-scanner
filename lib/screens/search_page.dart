@@ -1,176 +1,113 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:y_Scanner/screens/qr_scanner_screen.dart';
 
 class SearchPage extends StatefulWidget {
-  final List<dynamic> data;
-
-  const SearchPage({super.key, required this.data});
+  final List<Map<String, String>> initialData;
+  SearchPage({this.initialData = const []});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  _SearchPageState createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  List<dynamic> _filteredData = [];
-  String _searchQuery = '';
-
+  late List<Map<String, String>> _data;
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _data = List.from(widget.initialData);
   }
 
-  Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? savedData = prefs.getString('savedData');
-    debugPrint('Loaded data: $savedData'); // Debug log buat memastikan ke save
+  void _addScannedData(String scannedValue) {
     setState(() {
-      if (savedData != null) {
-        widget.data.clear();
-        widget.data.addAll(jsonDecode(savedData));
-        _filteredData = widget.data;
-      } else {
-        _filteredData = widget.data;
-      }
+      _data.add({
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'value': scannedValue,
+      });
     });
   }
 
-  Future<void> _saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedString = jsonEncode(widget.data);
-    await prefs.setString('savedData', savedString);
-    debugPrint('Saved data: $savedString');
-  }
+  void _editItem(int index) {
+    final selectedItem = _data[index];
+    final valueController = TextEditingController(text: selectedItem['value']);
 
-  void _filterData(String query) {
-    setState(() {
-      _searchQuery = query;
-      _filteredData = widget.data.where((item) {
-        return item.entries.any((entry) =>
-            entry.value.toString().toLowerCase().contains(query.toLowerCase()));
-      }).toList();
-    });
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Data'),
+          content: TextField(
+            controller: valueController,
+            decoration: const InputDecoration(labelText: 'Value'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _data[index]['value'] = valueController.text.trim();
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _deleteItem(int index) {
     setState(() {
-      widget.data.removeAt(index);
-      _filteredData = widget.data
-          .where((item) =>
-              item['name'].toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
+      _data.removeAt(index);
     });
-    _saveData(); // Simpan perubahan setelah penghapusan
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Data berhasil dihapus!')),
-    );
-  }
-
-  void _resetData() async {
-    setState(() {
-      widget.data.clear();
-      _filteredData.clear();
-    });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('savedData'); // buat Hapus data dari SharedPreferences
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Semua data berhasil dihapus!')),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Search Page'),
         backgroundColor: const Color.fromARGB(255, 39, 38, 43),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Cari Data',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _resetData,
-            tooltip: 'Reset Data',
-          )
-        ],
       ),
-      backgroundColor: Colors.black,
-      body: Column(
-        children: [
-          // Form pencarian
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              onChanged: _filterData,
-              style: const TextStyle(color: Colors.white),
-              cursorColor: Colors.white,
-              decoration: InputDecoration(
-                labelText: 'Cari Data',
-                labelStyle:
-                    const TextStyle(color: Color.fromARGB(255, 88, 88, 88)),
-                floatingLabelStyle: const TextStyle(color: Colors.white),
-                enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(
-                        color: Color.fromARGB(255, 88, 88, 88)),
-                    borderRadius: BorderRadius.circular(8)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide:
-                        const BorderSide(color: Colors.white, width: 2.0),
-                    borderRadius: BorderRadius.circular(8)),
-              ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final scannedValue = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => QRScannerScreen()),
+          );
+          if (scannedValue != null) {
+            _addScannedData(scannedValue);
+          }
+        },
+        child: const Icon(Icons.qr_code_scanner),
+      ),
+      body: ListView.builder(
+        itemCount: _data.length,
+        itemBuilder: (context, index) {
+          print('Rendering item ${index + 1} of ${_data.length}'); // Debug log
+          return ListTile(
+            title: Text(
+              _data[index]['value'] ?? '',
+              style: TextStyle(color: Colors.black),
             ),
-          ),
-
-          Expanded(
-            child: ListView.builder(
-              itemCount: _filteredData.length,
-              itemBuilder: (context, index) {
-                final item = _filteredData[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8.0, horizontal: 16.0),
-                  child: Card(
-                    color: const Color.fromARGB(255, 39, 38, 43),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Iterasi key-value
-                          ...item.entries.map((entry) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 5.0),
-                              child: Text(
-                                '${entry.key}: ${entry.value}',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteItem(index),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => _editItem(index),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _deleteItem(index),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

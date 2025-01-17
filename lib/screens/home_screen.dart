@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'qr_scanner_screen.dart';
 import 'search_page.dart';
-import 'api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     final String? savedData = prefs.getString('savedData');
+    print('Data Tersimpan: $savedData');
     if (savedData != null) {
       setState(() {
         _apiData = jsonDecode(savedData);
@@ -36,33 +35,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('savedData', jsonEncode(_apiData));
-  }
-
-  Future<void> _fetchData() async {
-    try {
-      final data = await ApiService.fetchData();
-      setState(() {
-        _apiData = data;
-      });
-      await _saveData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data berhasil diperbarui!')),
-      );
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengambil data: $error')),
-      );
-    }
-  }
-
   void _checkScanResult(String result) {
+    print('Hasil Scan: $result');
     final isRegistered = _apiData.any((item) {
+      print('Item API: $item');
       return item.entries.any((entry) => entry.value.toString() == result);
     });
-
     setState(() {
       _status = isRegistered ? 'Terdaftar' : 'Tidak Terdaftar';
       _scanResult = result;
@@ -73,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (await canLaunchUrl(Uri.parse(url))) {
       try {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-      } on Exception catch (e) {
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal membuka tautan: $e')),
         );
@@ -92,74 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return urlRegex.hasMatch(text);
   }
 
-  Future<void> _setApiUrl(BuildContext context) async {
-    final urlController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Tambahkan URL JSON',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: const Color.fromARGB(255, 39, 38, 43),
-          content: TextField(
-            controller: urlController,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Masukkan URL JSON',
-              hintStyle: const TextStyle(color: Colors.white70),
-              enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Colors.white70),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Colors.white, width: 2.0),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Batal', style: TextStyle(color: Colors.white)),
-            ),
-            TextButton(
-              onPressed: () async {
-                final url = urlController.text.trim();
-
-                if (url.isNotEmpty) {
-                  try {
-                    // Set URL di ApiService dan simpan ke SharedPreferences
-                    await ApiService.setApiUrl(url);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('URL berhasil disimpan!')),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Gagal menyimpan URL: $e')),
-                    );
-                  }
-                }
-
-                Navigator.pop(context);
-              },
-              child: const Text('Tambahkan',
-                  style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _addToSearchPageWithId() async {
-    final keyController = TextEditingController();
-    final valueController = TextEditingController();
+  Future<void> _addToSearchPageWithId(String scannedUID) async {
+    final mesinController = TextEditingController();
+    final currentDate = DateTime.now();
+    final formattedDate =
+        '${currentDate.year}-${currentDate.month}-${currentDate.day}';
 
     showDialog(
       context: context,
@@ -174,38 +89,56 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: keyController,
+                controller: mesinController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Key',
+                  labelText: 'Nomor Mesin',
                   border: const OutlineInputBorder(),
                   floatingLabelStyle: const TextStyle(color: Colors.white),
                   enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                          color: Color.fromARGB(255, 88, 88, 88)),
-                      borderRadius: BorderRadius.circular(8)),
+                    borderSide: const BorderSide(
+                        color: Color.fromARGB(255, 88, 88, 88)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Colors.white, width: 2.0),
-                      borderRadius: BorderRadius.circular(8)),
+                    borderSide:
+                        const BorderSide(color: Colors.white, width: 2.0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: valueController,
+                enabled: false,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Value',
+                  labelText: 'UID (Hasil Scan)',
+                  hintText: scannedUID,
+                  hintStyle: const TextStyle(color: Colors.grey),
                   border: const OutlineInputBorder(),
                   floatingLabelStyle: const TextStyle(color: Colors.white),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                          color: Color.fromARGB(255, 88, 88, 88)),
-                      borderRadius: BorderRadius.circular(8)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Colors.white, width: 2.0),
-                      borderRadius: BorderRadius.circular(8)),
+                  disabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                        color: Color.fromARGB(255, 88, 88, 88)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                enabled: false,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Tanggal Perbaikan',
+                  hintText: formattedDate,
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  border: const OutlineInputBorder(),
+                  floatingLabelStyle: const TextStyle(color: Colors.white),
+                  disabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(
+                        color: Color.fromARGB(255, 88, 88, 88)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
@@ -219,13 +152,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                final key = keyController.text.trim();
-                final value = valueController.text.trim();
-                if (key.isNotEmpty && value.isNotEmpty) {
+                final nomorMesin = mesinController.text.trim();
+                if (nomorMesin.isNotEmpty) {
                   setState(() {
-                    _apiData.insert(0, {key: value});
+                    _apiData.insert(0, {
+                      'nomorMesin': nomorMesin,
+                      'UID': scannedUID,
+                      'tanggal': formattedDate,
+                    });
                   });
-                  _saveData();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Data berhasil ditambahkan!')),
                   );
@@ -274,12 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Pengaturan',
                 style: TextStyle(color: Colors.white, fontSize: 24),
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.arrow_right, color: Colors.white),
-              title: const Text('Tambahkan manual JSON',
-                  style: TextStyle(color: Colors.white)),
-              onTap: () => _setApiUrl(context),
             ),
             ListTile(
               leading: const Icon(Icons.info, color: Colors.white),
@@ -352,7 +281,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 10),
                       if (_status == 'Tidak Terdaftar')
                         GestureDetector(
-                          onTap: _addToSearchPageWithId,
+                          onTap: () {
+                            _addToSearchPageWithId(
+                                _scanResult); // Pastikan _scanResult diisi sebelumnya
+                          },
                           child: const Text(
                             'Tambahkan?',
                             style: TextStyle(
@@ -414,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: _fetchData,
+                        onPressed: () {},
                         child: const Text('Dapatkan Data'),
                       ),
                     ),
@@ -434,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => SearchPage(data: _apiData),
+                              builder: (context) => SearchPage(),
                             ),
                           );
                         },
