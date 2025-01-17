@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: '',
-      theme: ThemeData(dialogBackgroundColor: Color.fromARGB(255, 24, 23, 28)),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: SplashScreen(),
     );
   }

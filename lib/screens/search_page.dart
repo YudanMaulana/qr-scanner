@@ -1,113 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:y_Scanner/screens/qr_scanner_screen.dart';
 
 class SearchPage extends StatefulWidget {
-  final List<Map<String, String>> initialData;
-  SearchPage({this.initialData = const []});
+  final List<dynamic> data;
+
+  const SearchPage({super.key, required this.data});
 
   @override
-  _SearchPageState createState() => _SearchPageState();
+  State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  late List<Map<String, String>> _data;
+  List<dynamic> _filteredData = [];
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
-    _data = List.from(widget.initialData);
+    _filteredData = widget.data; // Set data awal
   }
 
-  void _addScannedData(String scannedValue) {
+  void _filterData(String query) {
     setState(() {
-      _data.add({
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'value': scannedValue,
-      });
+      _searchQuery = query;
+      _filteredData = widget.data
+          .where((item) =>
+              item['name'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
     });
-  }
-
-  void _editItem(int index) {
-    final selectedItem = _data[index];
-    final valueController = TextEditingController(text: selectedItem['value']);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Edit Data'),
-          content: TextField(
-            controller: valueController,
-            decoration: const InputDecoration(labelText: 'Value'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _data[index]['value'] = valueController.text.trim();
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _deleteItem(int index) {
     setState(() {
-      _data.removeAt(index);
+      widget.data.removeAt(index);
+      _filteredData = widget.data
+          .where((item) =>
+              item['name'].toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Data berhasil dihapus!')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Page'),
-        backgroundColor: const Color.fromARGB(255, 39, 38, 43),
+        title: const Text('Cari Data'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final scannedValue = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => QRScannerScreen()),
-          );
-          if (scannedValue != null) {
-            _addScannedData(scannedValue);
-          }
-        },
-        child: const Icon(Icons.qr_code_scanner),
-      ),
-      body: ListView.builder(
-        itemCount: _data.length,
-        itemBuilder: (context, index) {
-          print('Rendering item ${index + 1} of ${_data.length}'); // Debug log
-          return ListTile(
-            title: Text(
-              _data[index]['value'] ?? '',
-              style: TextStyle(color: Colors.black),
+      body: Column(
+        children: [
+          // Form pencarian
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              onChanged: _filterData,
+              decoration: const InputDecoration(
+                labelText: 'Cari Data',
+                border: OutlineInputBorder(),
+              ),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _editItem(index),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _deleteItem(index),
-                ),
-              ],
+          ),
+          // Daftar data dengan ikon hapus
+          Expanded(
+            child: ListView.builder(
+              itemCount: _filteredData.length,
+              itemBuilder: (context, index) {
+                final item = _filteredData[index];
+                return ListTile(
+                  title: Text(item['name']),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _deleteItem(index),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

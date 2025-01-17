@@ -7,7 +7,6 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       body: FlutterSplashScreen.fadeIn(
         duration: Duration(milliseconds: 3300),
         childWidget: Center(
@@ -21,7 +20,7 @@ class SplashScreen extends StatelessWidget {
                   SizedBox(
                     child: DefaultTextStyle(
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color.fromRGBO(83, 83, 83, 1),
                         fontSize: 17,
                         fontFamily: 'Agne',
                       ),
@@ -60,7 +59,7 @@ class SplashScreen extends StatelessWidget {
             ],
           ),
         ),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
         nextScreen: HomeScreen(),
       ),
     );
